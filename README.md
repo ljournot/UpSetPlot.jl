@@ -40,7 +40,7 @@ Keyword arguments:
 
 The `Dict` storing the intersection-specific elements may be converted to a dataframe using the `to_dataframe` function.
 
-# EXAMPLE
+## EXAMPLE
 ```julia-repl
 julia> set_names = ["Set1", "Set2", "Set3", "Set4", "Set5", "Set6"]
 julia> df1 = DataFrame(
