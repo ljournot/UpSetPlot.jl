@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/ljournot/UpSetPlot.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ljournot/UpSetPlot.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 ## Installation
-Install UpSetPlots.jl by running the following commands in Julia:
+Install UpSetPlot.jl by running the following commands in Julia:
 ```julia-repl
 julia> using Pkg
 
