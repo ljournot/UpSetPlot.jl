@@ -72,9 +72,9 @@ true
 
 julia> to_dataframe(lists1)
 ```
-![IMAGE](https://)
+![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/to_dataframe.png)
 
 ```julia-repl
 julia> display(fig1)
 ```
-![IMAGE](https://)
+![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/fig1.png)
