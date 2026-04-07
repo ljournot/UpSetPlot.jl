@@ -56,7 +56,7 @@ Columns whose name is in `set_names` are excluded if they are empty or contain o
 Keyword arguments:
 - `set_names`: a `Vector{String}` storing the name of the sets to intersect. Default to all column names in `df` except `"id"`.
 - `fig_size`:  the size of the UpSet plot. Default to `(1000, 1000)`.
-- `colors`:    the colors used for each set. `my25colors`, a vector of named colors defined as a `const`.
+- `colors`:    the colors used for each set. Default to `my25colors`, a vector of named colors defined as a `const`.
 - `intersection_lists`: default to `false`. If `true`, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
 
 The `Dict` storing the intersection-specific elements may be converted to a dataframe using the `to_dataframe` function.
