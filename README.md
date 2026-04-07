@@ -14,29 +14,18 @@ julia> Pkg.add("https://github.com/ljournot/UpSetPlots.jl")
 UpSet plots (https://en.wikipedia.org/wiki/UpSet_plot) are a data visualization method for showing set data with more than three intersecting sets. UpSet plots tend to perform better than Venn diagrams for larger numbers of sets and when it is desirable to also show contextual information about the set intersections.
 
 ## Usage
-The main function is `upset_plot`, which returns the UpSet plot computed from sets stored in a `Vector{Set}`, and, optionally, the lists of the elements specific to each set intersection.
+The main function is `upset_plot`, which returns the UpSet plot computed from:
+- Sets stored in a `Vector{Set}`.
 ```
 upset_plot(
         sets::Vector{T},
         set_names::Vector{String};
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
-        colors::Vector{Symbol} = my25colors,
+        colors::Vector{Symbol} = my25colors, # a vector of named colors
         intersection_lists::Bool = false
     ) where T<:Set
 ```
-Return the UpSet plot computed from `sets`.
-
-Arguments:
-- `sets`: the vector of `Set`s to intersect.
-- `set_names`: a `Vector{String}` storing the name of the sets to intersect.
-
-Keyword arguments:
-- `fig_size`:  the size of the UpSet plot. Default to `(1000, 1000)`.
-- `colors`:    the colors used for each set. Default to `my25colors`, a vector of named colors defined as a `const`.
-- `intersection_lists`: default to `false`. If true, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
-
-
-Alternatively, the sets can be stored in a dataframe's columns.
+- Sets stored in a dataframe's columns.
 ```
 upset_plot(
     df::DataFrame;
@@ -46,21 +35,15 @@ upset_plot(
     intersection_lists::Bool = false
 )
 ```
-Return the UpSet plot computed from sets stored in `df`'s columns.
-
-The sets can be encoded in two different ways:
+In the latter case, the sets can be encoded in two different ways:
 - `df`'s columns whose name is in `set_names` include the set elements; `missing`s are not considered set elements and deleted.
 - One column, named `:id`, includes all possible elements, and the columns whose name is in `set_names` include booleans to encode set membership.
 
+Columns not in `set_names` are not further considered.
 Columns whose name is in `set_names` are excluded if they are empty or contain only `missing`s.
 
-Keyword arguments:
-- `set_names`: a `Vector{String}` storing the name of the sets to intersect. Default to all column names in `df` except `"id"`.
-- `fig_size`:  the size of the UpSet plot. Default to `(1000, 1000)`.
-- `colors`:    the colors used for each set. Default to `my25colors`, a vector of named colors defined as a `const`.
-- `intersection_lists`: default to `false`. If `true`, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
-
-The `Dict` storing the intersection-specific elements may be converted to a dataframe using the `to_dataframe` function.
+If `intersection_lists` is `true`, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
+The `Dict` storing the intersection-specific elements may be converted to a dataframe using the `to_dataframe` function..
 
 ## Example
 ```julia-repl
