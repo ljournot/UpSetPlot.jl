@@ -13,6 +13,7 @@ julia> Pkg.add("https://github.com/ljournot/UpSetPlots.jl")
 ## About
 UpSet plots (https://en.wikipedia.org/wiki/UpSet_plot) are a data visualization method for showing set data with more than three intersecting sets. UpSet plots tend to perform better than Venn diagrams for larger numbers of sets and when it is desirable to also show contextual information about the set intersections.
 
+## Usage
 The main function is `upset_plot`, which returns the UpSet plot computed from sets stored in a `Vector{Set}`, and, optionally, the lists of the elements specific to each set intersection.
 ```
 upset_plot(
