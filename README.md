@@ -48,6 +48,7 @@ The `Dict` storing the intersection-specific elements may be converted to a data
 ## Example
 ```julia-repl
 julia> using UpSetPlot
+julia > using DataFrames
 julia> set_names = ["Set1", "Set2", "Set3", "Set4", "Set5", "Set6"]
 julia> df1 = DataFrame(
     Set1 = ["ID01", "ID02", "ID03", "ID07", "ID08", "ID09", "ID10", "ID04", "ID05", "ID06"],
