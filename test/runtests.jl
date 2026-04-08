@@ -44,6 +44,10 @@ df2 = DataFrame(
             Set2_Set3_Set6 = ["ID13", missing, missing, missing],
             Set1_Set2_Set3_Set6 = ["ID01", missing, missing, missing]
         )
-    @test (Matrix(skipmissing.(df_out) .== skipmissing.(df_test))) == reshape(fill(true, 44), 4, 11)
     #@test isequal(df_out, df_test)
+    # I can't use `isequal` here because it's failing with Julia 1.13 pre-release due to
+    # the new hash function. I test the values of the dfs instead, ignoring the missing
+    # values because `missing == missing` returns `missing`.
+    @test skipmissing.(Matrix(df_out)) == skipmissing.(Matrix(df_test))
+
 end
