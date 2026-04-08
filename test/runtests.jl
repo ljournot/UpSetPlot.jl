@@ -44,22 +44,6 @@ df2 = DataFrame(
             Set2_Set3_Set6 = ["ID13", missing, missing, missing],
             Set1_Set2_Set3_Set6 = ["ID01", missing, missing, missing]
         )
-    @test (Matrix(skipmissing.(df_out) .== skipmissing.(df_test))) == reshape(fill(true, 44), 4, 11)
-    #=
-    @test isequal(
-        df_out,
-        DataFrame(
-            Set1 = ["ID06", "ID08", "ID09", "ID10"],
-            Set4 = ["ID17", "ID18", "ID19", missing],
-            Set1_Set2_Set3_Set4_Set6 = ["ID02", "ID03", missing, missing],
-            Set1_Set2_Set6 = ["ID04", "ID05", missing, missing],
-            Set2_Set6 = ["ID11", "ID12", missing, missing   ],
-            Set1_Set3 = ["ID07", missing, missing, missing],
-            Set2_Set4 = ["ID14", missing, missing, missing],
-            Set4_Set6 = ["ID16", missing, missing, missing],
-            Set2 = ["ID15", missing, missing, missing],
-            Set2_Set3_Set6 = ["ID13", missing, missing, missing],
-            Set1_Set2_Set3_Set6 = ["ID01", missing, missing, missing]
-        )
-    )=#
+    #@test (Matrix(skipmissing.(df_out) .== skipmissing.(df_test))) == reshape(fill(true, 44), 4, 11)
+    @test isequal(df_out, df_test)
 end
