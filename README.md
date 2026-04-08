@@ -9,7 +9,7 @@ julia> using Pkg
 
 julia> Pkg.add("https://github.com/ljournot/UpSetPlots.jl")
 ```
-ALternatively, in the Julia REPL type `]`, then
+Alternatively, in the Julia REPL type `]`, then
 ```
 (@v1.12) pkg> add https://github.com/ljournot/UpSetPlots.jl
 ```
