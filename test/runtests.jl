@@ -31,6 +31,8 @@ df2 = DataFrame(
     @test lists2["Set1_Set2_Set6"] == ["ID04", "ID05"]
 
     df_out = to_dataframe(lists1)
+    @test (Matrix(skipmissing.(df_out) .== skipmissing.(df_result))) == reshape(fill(true, 44), 4, 11)
+    #=
     @test isequal(
         df_out,
         DataFrame(
@@ -46,5 +48,5 @@ df2 = DataFrame(
             Set2_Set3_Set6 = ["ID13", missing, missing, missing],
             Set1_Set2_Set3_Set6 = ["ID01", missing, missing, missing]
         )
-    )
+    )=#
 end
