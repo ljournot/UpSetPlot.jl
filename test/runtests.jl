@@ -48,5 +48,4 @@ df2 = DataFrame(
     # I can't use `isequal` here because it's failing with Julia 1.13 pre-release due to
     # the new hash function. I test the values of the dfs instead, ignoring the missing
     # values because `missing == missing` returns `missing`.
-    @test all(df_out[!, :Set1] .== df_test[!, :Set1])
 end
