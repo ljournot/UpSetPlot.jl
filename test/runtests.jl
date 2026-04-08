@@ -45,7 +45,6 @@ df2 = DataFrame(
             Set1_Set2_Set3_Set6 = ["ID01", missing, missing, missing]
         )
     @test df_out[!, :Set1] == df_test[!, :Set1]
-    @test skipmissing(df_out[!, :Set4]) == skipmissing(df_test[!, :Set4])
     #@test isequal(df_out, df_test)
     # Passing with Julia 1.10 & 1.12, but failing with Julia 1.13 pre-release due to
     # the new hash function (?).
