@@ -7,7 +7,7 @@ Install UpSetPlot.jl by running the following commands in the Julia REPL:
 ```julia-repl
 julia> using Pkg
 
-julia> Pkg.add("https://github.com/ljournot/UpSetPlots.jl")
+julia> Pkg.add(url="https://github.com/ljournot/UpSetPlots.jl")
 ```
 Alternatively, in the Julia REPL type `]`, then
 ```
