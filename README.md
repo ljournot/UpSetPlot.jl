@@ -2,6 +2,11 @@
 
 [![Build Status](https://github.com/ljournot/UpSetPlot.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ljournot/UpSetPlot.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
+## About
+UpSet plots (https://en.wikipedia.org/wiki/UpSet_plot) are a data visualization method for showing set data with more than three intersecting sets. UpSet plots tend to perform better than Venn diagrams for larger numbers of sets and when it is desirable to also show contextual information about the set intersections.
+
+![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/fig1_small.png)
+
 ## Installation
 Install UpSetPlot.jl by running the following commands in the Julia REPL:
 ```julia-repl
@@ -14,10 +19,6 @@ Alternatively, in the Julia REPL type `]`, then
 (@v1.12) pkg> add https://github.com/ljournot/UpSetPlots.jl
 ```
 
-## About
-UpSet plots (https://en.wikipedia.org/wiki/UpSet_plot) are a data visualization method for showing set data with more than three intersecting sets. UpSet plots tend to perform better than Venn diagrams for larger numbers of sets and when it is desirable to also show contextual information about the set intersections.
-
-![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/fig1_small.png)
 ## Usage
 The main function is `upset_plot`, which returns the UpSet plot computed from:
 - Sets stored in a `Vector{Set}`.
