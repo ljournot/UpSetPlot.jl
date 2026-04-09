@@ -20,6 +20,8 @@ const my25colors = [
         set_names::Vector{String};
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors,
+        orientation::Symbol = :horizontal,
+        cumul::Bool = false,
         intersection_lists::Bool = false
     ) where T<:Set
 
@@ -32,6 +34,8 @@ Arguments:
 Keyword arguments:
 - `fig_size`:  the size of the UpSet plot. Default to `(1000, 1000)`
 - `colors`:    the colors used for each set. Default to `my25colors`, a vector of named colors defined as a `const`.
+- `orientation`: the orientation of the UpSet plot; one of `:horizontal`, `:h`, `:vertical`, or `:v`.
+- `cumul`: default to `false`. If `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
 - `intersection_lists`: default to `false`. If true, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are lists of elements specific to the intersection of sets found in the concatenated set names.
 """
 function upset_plot(
@@ -39,6 +43,8 @@ function upset_plot(
         set_names::Vector{String};
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors,
+        orientation::Symbol = :horizontal,
+        cumul::Bool = false,
         intersection_lists::Bool = false
 ) where T<:Set
 
@@ -122,104 +128,209 @@ function upset_plot(
     # UpSet plot
     fig = Figure(size=fig_size)
 
-    # Top left
-    top_left = Axis(
-        fig[1, 1];
-        xticks = (eachindex(sets_copy), setnames_copy),
-        xticklabelrotation = π/4,
-        ylabel = "set size"
-    )
-    set_sizes = length.(sets_copy)
-    barplot!(
-        top_left,
-        eachindex(sets_copy),
-        set_sizes;
-        color = eachindex(sets_copy),
-        colormap = colors[eachindex(sets_copy)]
-    )
-    top_left.xreversed=true
-    hidespines!(top_left)
-
-    # Top right
-    top_right = Axis(
-        fig[1, 2];
-        xlabel = "Cumulated size of the intersections of n sets",
-        yaxisposition = :right,
-        ylabel = "n",
-        yticks = 1:n_sets,
-        ytickalign = 1,
-        yticklabelpad = 0
-    )
-    barplot!(
-        top_right,
-        1:n_sets,
-        intersect_counts;
-        color = :lightgrey,
-        strokecolor = :grey,
-        strokewidth = 1,
-        direction = :x
-    )
-    hidespines!(top_right)
-
-    # Bottom left
-    bottom_left = Axis(
-        fig[2, 1];
-        xticks = (eachindex(sets_copy), setnames_copy),
-        xaxisposition = :top
-    )
-    for (i, combin) in enumerate(combins)
-        min_x = minimum(combin)
-        max_x = maximum(combin)
-        lines!(
-            bottom_left,
-            [n_sets - min_x + 1, n_sets - max_x + 1],
-            [i, i];
-            color=:grey
+    if orientation in [:horizontal, :h]
+        # Top left
+        top_left = Axis(
+            fig[1, 1];
+            xticks = (eachindex(sets_copy), setnames_copy),
+            xticklabelrotation = π/4,
+            ylabel = "Set size"
         )
-        # Plot the sets in the current combination as large dots
-        for c in combin
-            clr = colors[c]
-            scatter!(
-                bottom_left,
-                n_sets - c + 1,
-                i;
-                markersize=Int(round(fig_size[1]/50)),
-                color=clr
+        set_sizes = length.(sets_copy)
+        barplot!(
+            top_left,
+            eachindex(sets_copy),
+            set_sizes;
+            color = eachindex(sets_copy),
+            colormap = colors[eachindex(sets_copy)]
+        )
+        top_left.xreversed=true
+        hidespines!(top_left)
+
+        # Top right
+        if cumul
+            top_right = Axis(
+                fig[1, 2];
+                xlabel = "Cumulative intersection size",
+                ylabel = "Intersection degree",
+                yticks = 1:n_sets,
+                ytickalign = 1,
+                yticklabelpad = 0
             )
+            barplot!(
+                top_right,
+                1:n_sets,
+                intersect_counts;
+                color = :lightgrey,
+                strokecolor = :grey,
+                strokewidth = 1,
+                direction = :x
+            )
+            hidespines!(top_right)
         end
+
+        # Bottom left
+        bottom_left = Axis(
+            fig[2, 1];
+            xticks = (eachindex(sets_copy), setnames_copy),
+            xaxisposition = :top
+        )
+        for (i, combin) in enumerate(reverse(combins))
+            min_x = minimum(combin)
+            max_x = maximum(combin)
+            lines!(
+                bottom_left,
+                [n_sets - min_x + 1, n_sets - max_x + 1],
+                [i, i];
+                color=:grey
+            )
+            # Plot the sets in the current combination as large dots
+            for c in combin
+                clr = colors[c]
+                scatter!(
+                    bottom_left,
+                    n_sets - c + 1,
+                    i;
+                    markersize=Int(round(fig_size[1]/50)),
+                    color=clr
+                )
+            end
+        end
+        ylims!(bottom_left, 0, n_combins + 1)
+        hidedecorations!(bottom_left)
+        hidespines!(bottom_left)
+
+        # Bottom right
+        bottom_right = Axis(
+            fig[2, 2];
+            xlabel = "Intersection size"
+        )
+        combin_counts = map(c -> get(combin2count, c, 0), combins)
+        barplot!(
+            bottom_right,
+            n_combins:-1:1,
+            combin_counts;
+            strokecolor = :grey,
+            strokewidth = 1,
+            color = :lightgrey,
+            direction = :x
+        )
+        ylims!(bottom_right, 0, n_combins + 1)
+        hideydecorations!(bottom_right)
+        hidespines!(bottom_right)
+
+        # Arrange the four plots
+        linkxaxes!(top_left, bottom_left)
+        linkyaxes!(bottom_left, bottom_right)
+        rowsize!(fig.layout, 1, Relative(1/4))
+        rowsize!(fig.layout, 2, Relative(3/4))
+        colsize!(fig.layout, 1, Relative(1/3))
+        colsize!(fig.layout, 2, Relative(2/3))
+
+    elseif orientation in [:vertical, :v]
+        # Top left
+        if cumul
+            top_left = Axis(
+                fig[1, 1];
+                xlabel = "Intersection degree",
+                xticks = 1:n_sets,
+                ylabel = "Cumulative intersection size"
+            )
+            barplot!(
+                top_left,
+                1:n_sets,
+                intersect_counts;
+                color = :lightgrey,
+                strokecolor = :grey,
+                strokewidth = 1
+            )
+            hidespines!(top_left)
+        end
+
+        # Top right
+        top_right = Axis(
+            fig[1, 2];
+            yaxisposition = :right,
+            ylabel = "Intersection size"
+        )
+        combin_counts = map(c -> get(combin2count, c, 0), combins)
+        barplot!(
+            top_right,
+            1:n_combins,
+            combin_counts;
+            strokecolor = :grey,
+            strokewidth = 1,
+            color = :lightgrey
+        )
+        xlims!(top_right, 0, n_combins + 1)
+        hidexdecorations!(top_right)
+        hidespines!(top_right)
+
+        # Bottom left
+        bottom_left = Axis(
+            fig[2, 1];
+            xlabel = "Set size",
+            xreversed = true,
+            yaxisposition = :right,
+            yticks = (eachindex(sets_copy), setnames_copy),
+            yreversed = true
+        )
+        set_sizes = length.(sets_copy)
+        barplot!(
+            bottom_left,
+            eachindex(sets_copy),
+            set_sizes;
+            color = eachindex(sets_copy),
+            colormap = colors[eachindex(sets_copy)],
+            direction = :x
+        )
+        hidespines!(bottom_left)
+
+        # Bottom right
+        bottom_right = Axis(
+            fig[2, 2];
+            xticks = (eachindex(sets_copy), setnames_copy),
+            xaxisposition = :top
+        )
+        for (i, combin) in enumerate(combins)
+            min_y = minimum(combin)
+            max_y = maximum(combin)
+            lines!(
+                bottom_right,
+                [i, i],
+                [n_sets - min_y + 1, n_sets - max_y + 1];
+                color=:grey
+            )
+            # Plot the sets in the current combination as large dots
+            for c in combin
+                clr = colors[c]
+                scatter!(
+                    bottom_right,
+                    i,
+                    n_sets - c + 1;
+                    markersize=Int(round(fig_size[1]/50)),
+                    color=clr
+                )
+            end
+        end
+        xlims!(bottom_right, 0, n_combins + 1)
+        hidedecorations!(bottom_right)
+        hidespines!(bottom_right)
+
+        # Arrange the four plots
+        linkxaxes!(top_right, bottom_right)
+        linkyaxes!(bottom_left, bottom_right)
+        colsize!(fig.layout, 1, Relative(1/5))
+        colsize!(fig.layout, 2, Relative(4/5))
+        rowsize!(fig.layout, 1, Relative(3/4))
+        rowsize!(fig.layout, 2, Relative(1/4))
+
+    else
+        error("`orientation` is not one of :horizontal, :h, :vertical, or :v.")
     end
-    ylims!(bottom_left, 0, n_combins + 1)
-    hidedecorations!(bottom_left)
-    hidespines!(bottom_left)
-
-    # Bottom right
-    bottom_right = Axis(
-        fig[2, 2];
-        xlabel = "No. of intersection-specific elements"
-    )
-    combin_counts = map(c -> get(combin2count, c, 0), combins)
-    barplot!(
-        bottom_right,
-        1:n_combins,
-        combin_counts;
-        strokecolor = :grey,
-        strokewidth = 1,
-        color = :lightgrey,
-        direction = :x
-    )
-    ylims!(bottom_right, 0, n_combins + 1)
-    hideydecorations!(bottom_right)
-    hidespines!(bottom_right)
-
-    # Arrange the four plots
-    linkxaxes!(top_left, bottom_left)
-    linkyaxes!(bottom_left, bottom_right)
-    rowsize!(fig.layout, 1, Relative(1/4))
-    rowsize!(fig.layout, 2, Relative(3/4))
-    colsize!(fig.layout, 1, Relative(1/3))
-    colsize!(fig.layout, 2, Relative(2/3))
 
     intersection_lists ? (return (fig, combin2list)) : (return fig)
+
 end
 
 
@@ -229,6 +340,8 @@ end
             set_names::Vector{String} = setdiff(names(df), ["id"]),
             fig_size::Tuple{Int64, Int64} = (1000, 1000),
             colors::Vector{Symbol} = my25colors,
+            orientation::Symbol = :horizontal,
+            cumul::Bool = false,
             intersection_lists::Bool = false
     )
 Return the UpSet plot (https://en.wikipedia.org/wiki/UpSet_plot) computed from sets stored in `df`'s columns.
@@ -243,6 +356,8 @@ Keyword arguments:
 - `set_names`: a `Vector{String}` storing the name of the sets to intersect. Default to all column names in `df` except `"id"`.
 - `fig_size`:  the size of the UpSet plot.
 - `colors`:    the colors used for each set. `my25colors` is a vector of named colors defined as a `const`.
+- `orientation`: the orientation of the UpSet plot; one of `:horizontal`, `:h`, `:vertical`, or `:v`.
+- `cumul`: default to `false`. If `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
 - `intersection_lists`: default to `false`. If `true`, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
 
 # EXAMPLE
@@ -266,8 +381,8 @@ julia> df2 = DataFrame(
     Set5 = fill(false, 19),
     Set6 = [true, true, true, true, true, false, false, false, false, false, true, true, true, false, false, true, false, false, false]
 )
-julia> fig1, lists1 = upset_plot(df1; set_names=set_names, fig_size=(500, 500), intersection_lists=true);
-julia> fig2, lists2 = upset_plot(df2; fig_size=(500, 500), intersection_lists=true);
+julia> fig1, lists1 = upset_plot(df1; set_names=set_names, intersection_lists=true);
+julia> fig2, lists2 = upset_plot(df2; intersection_lists=true);
 julia> lists_1 == lists_2
 true
 julia> lists1["Set1"] == ["ID06", "ID08", "ID09", "ID10"]
@@ -281,6 +396,8 @@ function upset_plot(
         set_names::Vector{String} = setdiff(names(df), ["id"]),
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors,
+        orientation::Symbol = :horizontal,
+        cumul::Bool = false,
         intersection_lists::Bool = false
 )
     elt_types = eltype.(skipmissing.(eachcol(df[:, set_names]))) |> unique
@@ -305,6 +422,8 @@ function upset_plot(
     include set elements and, possibly, `missing`s.
     =#
     if bool_encoding
+        # Check the presence of column "id"
+        in("id", names(df)) || error("Column \"id\" is missing.")
         sets = Set.([df.id[df[:, set_name]] for set_name in set_names])
     else
         sets = Set.([collect(skipmissing(df[:, set_name])) for set_name in set_names])
@@ -315,6 +434,8 @@ function upset_plot(
         set_names;
         fig_size = fig_size,
         colors = colors,
+        orientation = orientation,
+        cumul = cumul,
         intersection_lists = intersection_lists
         )
 end
