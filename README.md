@@ -28,6 +28,8 @@ upset_plot(
         set_names::Vector{String};
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors, # a vector of named colors
+        orientation::Symbol = :vertical,
+        cumul::Bool = false,
         intersection_lists::Bool = false
     ) where T<:Set
 ```
@@ -38,6 +40,8 @@ upset_plot(
     set_names::Vector{String} = setdiff(names(df), ["id"]),
     fig_size::Tuple{Int64, Int64} = (1000, 1000),
     colors::Vector{Symbol} = my25colors,
+    orientation::Symbol = :vertical,
+    cumul::Bool = false,
     intersection_lists::Bool = false
 )
 ```
@@ -47,6 +51,10 @@ In the latter case, the sets can be encoded in two different ways:
 
 Columns not in `set_names` are not further considered.
 Columns whose name is in `set_names` are excluded if they are empty or contain only `missing`s.
+
+`orientation` sets the orientation of the Intersection size barplot.
+
+If `cumul` is `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
 
 If `intersection_lists` is `true`, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
 The `Dict` storing the intersection-specific elements may be converted to a dataframe using the `to_dataframe` function..
@@ -74,15 +82,14 @@ julia> df2 = DataFrame(
     Set5 = fill(false, 19),
     Set6 = [true, true, true, true, true, false, false, false, false, false, true, true, true, false, false, true, false, false, false]
 )
-julia> fig1, lists1 = upset_plot(df1; set_names=set_names, fig_size=(500, 500), intersection_lists=true);
-julia> fig2, lists2 = upset_plot(df2; fig_size=(500, 500), intersection_lists=true);
+julia> fig1, lists1 = upset_plot(df1; set_names=set_names, intersection_lists=true);
+julia> fig2, lists2 = upset_plot(df2; orientation=:h, cumul=true, intersection_lists=true);
 julia> lists_1 == lists_2
 true
 julia> lists1["Set1"] == ["ID06", "ID08", "ID09", "ID10"]
 true
 julia> lists2["Set1_Set2_Set6"] == ["ID04", "ID05"]
 true
-
 julia> to_dataframe(lists1)
 ```
 ![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/to_dataframe.png)
@@ -90,4 +97,9 @@ julia> to_dataframe(lists1)
 ```julia-repl
 julia> display(fig1)
 ```
-![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/fig1.png)
+![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/upset_v_nocumul.png)
+
+```julia-repl
+julia> display(fig2)
+```
+![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/upset_h_cumul.png)
