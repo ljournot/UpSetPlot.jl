@@ -20,7 +20,7 @@ const my25colors = [
         set_names::Vector{String};
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors,
-        orientation::Symbol = :horizontal,
+        orientation::Symbol = :vertical,
         cumul::Bool = false,
         intersection_lists::Bool = false
     ) where T<:Set
@@ -41,9 +41,9 @@ Keyword arguments:
 function upset_plot(
         sets::Vector{T},
         set_names::Vector{String};
-        fig_size::Tuple{Int64, Int64} = (1000, 1000),
-        colors::Vector{Symbol} = my25colors,
-        orientation::Symbol = :horizontal,
+        fig_size::Tuple{Int64, Int64}=(1000, 1000),
+        colors::Vector{Symbol}=my25colors,
+        orientation::Symbol=:vertical,
         cumul::Bool = false,
         intersection_lists::Bool = false
 ) where T<:Set
@@ -250,7 +250,6 @@ function upset_plot(
         # Top right
         top_right = Axis(
             fig[1, 2];
-            yaxisposition = :right,
             ylabel = "Intersection size"
         )
         combin_counts = map(c -> get(combin2count, c, 0), combins)
@@ -340,7 +339,7 @@ end
             set_names::Vector{String} = setdiff(names(df), ["id"]),
             fig_size::Tuple{Int64, Int64} = (1000, 1000),
             colors::Vector{Symbol} = my25colors,
-            orientation::Symbol = :horizontal,
+            orientation::Symbol = :vertical,
             cumul::Bool = false,
             intersection_lists::Bool = false
     )
@@ -396,7 +395,7 @@ function upset_plot(
         set_names::Vector{String} = setdiff(names(df), ["id"]),
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors,
-        orientation::Symbol = :horizontal,
+        orientation::Symbol = :vertical,
         cumul::Bool = false,
         intersection_lists::Bool = false
 )
