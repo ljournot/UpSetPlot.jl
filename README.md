@@ -11,12 +11,11 @@ UpSet plots (https://en.wikipedia.org/wiki/UpSet_plot) are a data visualization 
 Install UpSetPlot.jl by running the following commands in the Julia REPL:
 ```julia-repl
 julia> using Pkg
-
-julia> Pkg.add(url="https://github.com/ljournot/UpSetPlots.jl")
+julia> Pkg.add("UpSetPlot")
 ```
 Alternatively, in the Julia REPL type `]`, then
 ```
-(@v1.12) pkg> add https://github.com/ljournot/UpSetPlots.jl
+(@v1.12) pkg> add UpSetPlot
 ```
 
 ## Usage
