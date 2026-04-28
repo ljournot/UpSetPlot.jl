@@ -15,41 +15,22 @@ const my25colors = [
 ]
 
 """
-    upset_plot(
+    _plotinputs(
         sets::Vector{T},
         set_names::Vector{String};
-        fig_size::Tuple{Int64, Int64} = (1000, 1000),
-        colors::Vector{Symbol} = my25colors,
-        orientation::Symbol = :vertical,
+        cardinality_sort::Bool = false,
         cumul::Bool = false,
         intersection_lists::Bool = false
     ) where T<:Set
-
-Return the UpSet plot (https://en.wikipedia.org/wiki/UpSet_plot) computed from `sets`.
-
-Arguments:
-- `sets`: the vector of `Set`s to intersect.
-- `set_names`: a `Vector{String}` storing the name of the sets to intersect.
-
-Keyword arguments:
-- `fig_size`:  the size of the UpSet plot. Default to `(1000, 1000)`
-- `colors`:    the colors used for each set. Default to `my25colors`, a vector of named colors defined as a `const`.
-- `orientation`: the orientation of the UpSet plot; one of `:horizontal`, `:h`, `:vertical`, or `:v`.
-- `cumul`: default to `false`. If `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
-- `intersection_lists`: default to `false`. If true, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are lists of elements specific to the intersection of sets found in the concatenated set names.
+Return some inputs for the `upset_plot` function.
 """
-function upset_plot(
+function _plotinputs(
         sets::Vector{T},
         set_names::Vector{String};
-        fig_size::Tuple{Int64, Int64}=(1000, 1000),
-        colors::Vector{Symbol}=my25colors,
-        orientation::Symbol=:vertical,
+        cardinality_sort::Bool = false,
         cumul::Bool = false,
         intersection_lists::Bool = false
-) where T<:Set
-
-    # Check lengths
-    length(sets) == length(set_names) || error("Sets and and set names are not the same length.")
+    ) where T<:Set
 
     # Delete `missing`s
     sets_copy = collect.(skipmissing.(sets))
@@ -65,9 +46,6 @@ function upset_plot(
     # Delete names of empty sets
     setnames_copy = set_names[idxs_nonempty_sets]
 
-    # Check all elements are of the same type
-    #!allequal(eltype.(sets_copy)) && error("Sets should have elements of the same type.")
-
     # Unique elements in `sets`
     unique_elts = reduce(∪, sets_copy) |> collect |> sort
 
@@ -79,18 +57,19 @@ function upset_plot(
     end
 
     #= Unique combinations of indices of sets.
-    `combinations` is from Combinatorics. If the dependency on Combinatorics is an issue, we
-    can implement `combinations` ourselves using `Iterators.product` and `filter`. This is
-    ok up to 10 sets, which gives 1023 combinations, but it will be too slow for more sets.
+    `combinations` is from Combinatorics. If the dependency on Combinatorics is
+    an issue, we can implement `combinations` ourselves using `Iterators.product`
+    and `filter`. This is ok up to ~10 sets, which gives 1023 combinations, but
+    it is slow for more sets.
     =#
     combins = combinations(eachindex(sets_copy))
-    # Delete the first combination as it is empty
+    # Delete the first combination, which is empty
     combins = collect(combins)[2:end]
     n_combins = length(combins)
 
     # Counts for each combination
     # Intersection lists if `intersection_lists`
-    combin2count = Dict{Vector{Int64}, Int64}()
+    counts = Int[]
     if intersection_lists
         combin2list = Dict{String, Vector{String}}()
         for combin in combins
@@ -99,30 +78,120 @@ function upset_plot(
                 r -> all(!iszero, r[combin]) && all(iszero, r[not_combin]),
                 eachrow(membership)
             )
-            combin2count[combin] = length(idxs)
+            push!(counts, length(idxs))
             combin_set_names = join(setnames_copy[combin], "_")
             combin2list[combin_set_names] = unique_elts[idxs]
         end
     else
         for combin in combins
             not_combin = setdiff(eachindex(sets_copy), combin)
-            combin2count[combin] = count(
-                r -> all(!iszero, r[combin]) && all(iszero, r[not_combin]),
-                eachrow(membership)
+            push!(
+                counts,
+                count(
+                    r -> all(!iszero, r[combin]) && all(iszero, r[not_combin]),
+                    eachrow(membership)
+                )
             )
         end
     end
+    combin2count = Dict(combins .=> counts)
+
+    # If `cardinality_sort`, sort `combins` by cardinality of its elements.
+    # `reverse` for consistency with `cardinality_sort = false`.
+    if cardinality_sort
+        combins = reverse(combins[sortperm(counts)])
+    end
 
     # Counts for intersections of 1, 2, 3... sets.
-    intersect_counts = Int64[]
-    len_combins = length.(combins)
-    for i in 1:n_sets
-        counts_i = 0
-        idxs = findall(==(i), len_combins)
-        for idx in idxs
-            counts_i += combin2count[combins[idx]]
+    if cumul
+        intersect_counts = Int64[]
+        len_combins = length.(combins)
+        for i in 1:n_sets
+            counts_i = 0
+            idxs = findall(==(i), len_combins)
+            for idx in idxs
+                counts_i += combin2count[combins[idx]]
+            end
+            push!(intersect_counts, counts_i)
         end
-        push!(intersect_counts, counts_i)
+    end
+
+    # Return
+    results = [
+        sets_copy,
+        setnames_copy,
+        n_sets,
+        combins,
+        n_combins,
+        combin2count
+    ]
+    cumul && push!(results, intersect_counts)
+    intersection_lists && push!(results, combin2list)
+
+    return results
+end
+
+"""
+    upset_plot(
+        sets::Vector{T},
+        set_names::Vector{String};
+        fig_size::Tuple{Int64, Int64} = (1000, 1000),
+        colors::Vector{Symbol} = my25colors,
+        orientation::Symbol = :vertical,
+        cardinality_sort::Bool = true,
+        cumul::Bool = false,
+        intersection_lists::Bool = false
+    ) where T<:Set
+
+Return the UpSet plot (https://en.wikipedia.org/wiki/UpSet_plot) computed from `sets`.
+
+Arguments:
+- `sets`: the vector of `Set`s to intersect.
+- `set_names`: a `Vector{String}` storing the name of the sets to intersect.
+
+Keyword arguments:
+- `fig_size`:  the size of the UpSet plot. Default to `(1000, 1000)`
+- `colors`:    the colors used for each set. Default to `my25colors`, a vector of named colors defined as a `const`.
+- `orientation`: the orientation of the UpSet plot; one of `:horizontal`, `:h`, `:vertical`, or `:v`.
+- `cardinality_sort`: default to `false`. If `true`, the UpSet plot is sorted by intersection size.
+- `cumul`: default to `false`. If `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
+- `intersection_lists`: default to `false`. If true, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are lists of elements specific to the intersection of sets found in the concatenated set names.
+"""
+function upset_plot(
+        sets::Vector{T},
+        set_names::Vector{String};
+        fig_size::Tuple{Int64, Int64} = (1000, 1000),
+        colors::Vector{Symbol} = my25colors,
+        orientation::Symbol = :vertical,
+        cardinality_sort::Bool = false,
+        cumul::Bool = false,
+        intersection_lists::Bool = false
+) where T<:Set
+
+    # Check lengths
+    length(sets) == length(set_names) || error("Sets and and set names are not the same length.")
+
+    # Process data
+    results = _plotinputs(
+        sets,
+        set_names;
+        cardinality_sort = cardinality_sort,
+        cumul = cumul,
+        intersection_lists = intersection_lists
+    )
+    sets_copy = results[1]
+    setnames_copy = results[2]
+    n_sets = results[3]
+    combins = results[4]
+    n_combins = results[5]
+    combin2count = results[6]
+    if cumul && intersection_lists
+        intersect_counts = results[7]
+        combin2list = results[8]
+    elseif cumul
+        intersect_counts = results[7]
+    elseif intersection_lists
+        combin2list = results[7]
     end
 
     # UpSet plot
@@ -340,6 +409,7 @@ end
             fig_size::Tuple{Int64, Int64} = (1000, 1000),
             colors::Vector{Symbol} = my25colors,
             orientation::Symbol = :vertical,
+            cardinality_sort::Bool = false,
             cumul::Bool = false,
             intersection_lists::Bool = false
     )
@@ -356,6 +426,7 @@ Keyword arguments:
 - `fig_size`:  the size of the UpSet plot.
 - `colors`:    the colors used for each set. `my25colors` is a vector of named colors defined as a `const`.
 - `orientation`: the orientation of the UpSet plot; one of `:horizontal`, `:h`, `:vertical`, or `:v`.
+- `cardinality_sort`: default to `false`. If `true`, the UpSet plot is sorted by intersection size.
 - `cumul`: default to `false`. If `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
 - `intersection_lists`: default to `false`. If `true`, `upset_plot` additionally returns a `Dict` whose keys are concatenated set names and values are vectors of elements specific to the intersection of sets found in the concatenated set names.
 
@@ -396,6 +467,7 @@ function upset_plot(
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors,
         orientation::Symbol = :vertical,
+        cardinality_sort::Bool = false,
         cumul::Bool = false,
         intersection_lists::Bool = false
 )
@@ -434,6 +506,7 @@ function upset_plot(
         fig_size = fig_size,
         colors = colors,
         orientation = orientation,
+        cardinality_sort = cardinality_sort,
         cumul = cumul,
         intersection_lists = intersection_lists
         )
@@ -473,4 +546,4 @@ function to_dataframe(
     return df
 end
 
-end
+end # module
