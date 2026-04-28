@@ -28,6 +28,7 @@ upset_plot(
         fig_size::Tuple{Int64, Int64} = (1000, 1000),
         colors::Vector{Symbol} = my25colors, # a vector of named colors
         orientation::Symbol = :vertical,
+        cardinality_sort::Bool = false,
         cumul::Bool = false,
         intersection_lists::Bool = false
     ) where T<:Set
@@ -40,6 +41,7 @@ upset_plot(
     fig_size::Tuple{Int64, Int64} = (1000, 1000),
     colors::Vector{Symbol} = my25colors,
     orientation::Symbol = :vertical,
+    cardinality_sort::Bool = false,
     cumul::Bool = false,
     intersection_lists::Bool = false
 )
@@ -52,6 +54,8 @@ Columns not in `set_names` are not further considered.
 Columns whose name is in `set_names` are excluded if they are empty or contain only `missing`s.
 
 `orientation` sets the orientation of the Intersection size barplot.
+
+If `cardinality_sort` is `true`, the Intersection Size barplot is sorted by set cardinality.
 
 If `cumul` is `true`, the UpSet plot includes an additional plot displaying the cumulative intersection size for each intersection degree.
 
@@ -102,3 +106,8 @@ julia> display(fig1)
 julia> display(fig2)
 ```
 ![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/upset_h_cumul.png)
+
+```julia-repl
+julia> fig = upset_plot(df1; set_names=set_names, fig_size=(750, 750), orientation=:v, cardinality_sort=true, cumul=true, intersection_lists=false)
+```
+![IMAGE](https://github.com/ljournot/UpSetPlot.jl/blob/main/upset_v_sorted_cumul.png)
