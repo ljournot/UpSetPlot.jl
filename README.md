@@ -23,15 +23,15 @@ The main function is `upset_plot`, which returns the UpSet plot computed from:
 - Sets stored in a `Vector{Set}`.
 ```
 upset_plot(
-        sets::Vector{T},
-        set_names::Vector{String};
-        fig_size::Tuple{Int64, Int64} = (1000, 1000),
-        colors::Vector{Symbol} = my25colors, # a vector of named colors
-        orientation::Symbol = :vertical,
-        cardinality_sort::Bool = false,
-        cumul::Bool = false,
-        intersection_lists::Bool = false
-    ) where T<:Set
+    sets::Vector{T},
+    set_names::Vector{String};
+    fig_size::Tuple{Int64, Int64} = (1000, 1000),
+    colors::Vector{Symbol} = my25colors, # a vector of named colors
+    orientation::Symbol = :vertical,
+    cardinality_sort::Bool = false,
+    cumul::Bool = false,
+    intersection_lists::Bool = false
+) where T<:Set
 ```
 - Sets stored in a dataframe's columns.
 ```
